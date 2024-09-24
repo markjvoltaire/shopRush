@@ -15,6 +15,8 @@ import { getUser } from "../services/user";
 import { useUser } from "../useContext/userContext";
 import StoreDetails from "../screens/StoreDetails";
 import ProductDetails from "../screens/ProductDetails";
+import Checkout from "../screens/Checkout";
+import PaymentScreen from "../screens/PaymentScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -56,13 +58,44 @@ export default function Auth() {
         options={{
           headerShown: true,
           headerBackTitle: "Back",
-          headerTitle: "Details",
+          headerTitle: "",
           headerTransparent: true,
           headerTitleStyle: {},
           headerTintColor: "#000",
           headerBackTitleStyle: {
             color: "#000",
           },
+        }}
+      />
+
+      <Stack.Screen
+        name="PaymentScreen"
+        component={PaymentScreen}
+        options={{
+          headerShown: true,
+          headerBackTitle: "Back",
+          headerTitle: "Review & Pay",
+          headerTransparent: true,
+          headerTitleStyle: {},
+          headerTintColor: "#000",
+          headerBackTitleStyle: {
+            color: "#000",
+          },
+        }}
+      />
+
+      <Stack.Screen
+        name="CheckOut"
+        component={Checkout}
+        options={{
+          headerShown: true,
+          headerBackTitleStyle: {
+            color: "red",
+          },
+          headerTitle: "",
+          headerTransparent: true,
+          headerTitleStyle: {},
+          headerTintColor: "#000",
         }}
       />
       <Stack.Screen

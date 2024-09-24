@@ -9,6 +9,7 @@ import { supabase } from "./services/supabase";
 import Auth from "./auth/Auth";
 import NoAuth from "./auth/NoAuth";
 import { UserProvider } from "./useContext/userContext";
+import { StripeProvider } from "@stripe/stripe-react-native";
 
 function App() {
   const [auth, setAuth] = useState(false);
@@ -39,9 +40,17 @@ function App() {
   });
 
   return (
-    <UserProvider>
-      <NavigationContainer>{auth ? <Auth /> : <NoAuth />}</NavigationContainer>
-    </UserProvider>
+    <StripeProvider
+      merchantDisplayName="Tizly"
+      merchantIdentifier="merchant.com.tizly.TizlyNative" // The Merchant ID you created
+      publishableKey="pk_live_51PVMhrJ0o91xj4miX08JQC1jkXFJUbIZLYai2U2YMvz4LgQjuwOZeuPWypfjun5oHy3FEnJuSgWcplAzauSGzwmy00EiRpqFYE"
+    >
+      <UserProvider>
+        <NavigationContainer>
+          {auth ? <Auth /> : <NoAuth />}
+        </NavigationContainer>
+      </UserProvider>
+    </StripeProvider>
   );
 }
 

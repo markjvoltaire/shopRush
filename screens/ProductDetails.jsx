@@ -1,4 +1,5 @@
 import {
+  Alert, // Import Alert for error messages
   Image,
   SafeAreaView,
   Text,
@@ -9,10 +10,11 @@ import {
   TouchableOpacity,
   Modal,
   FlatList,
+  StyleSheet,
 } from "react-native";
 import React, { useState } from "react";
 
-export default function ProductDetails({ route }) {
+export default function ProductDetails({ route, navigation }) {
   // Get the dimensions of the screen
   const { height, width } = Dimensions.get("window");
   const productDetails = route.params.productDetails || {};
@@ -22,6 +24,28 @@ export default function ProductDetails({ route }) {
   const [quantity, setQuantity] = useState("1");
   const [modalVisible, setModalVisible] = useState(false);
   const [sizeOptions] = useState(["S", "M", "L", "XL"]);
+
+  const { key, name, params } = route;
+  const {
+    productImage,
+    productName,
+    productPrice,
+    storeCity,
+    storeName,
+    storeState,
+  } = productDetails;
+
+  const handleContinue = () => {
+    if (!selectedSize) {
+      Alert.alert("Error", "Please select a size before continuing.");
+    } else {
+      navigation.navigate("CheckOut", {
+        quantity,
+        selectedSize,
+        productDetails,
+      });
+    }
+  };
 
   return (
     <SafeAreaView style={{ backgroundColor: "white", flex: 1 }}>
@@ -178,8 +202,9 @@ export default function ProductDetails({ route }) {
           />
         </View>
         <TouchableOpacity
+          onPress={handleContinue}
           style={{
-            backgroundColor: "black",
+            backgroundColor: "#544AF4",
             paddingVertical: 15,
             paddingHorizontal: 40,
             borderRadius: 15,
@@ -189,8 +214,7 @@ export default function ProductDetails({ route }) {
             alignSelf: "center",
             marginBottom: 100,
           }}
-          accessibilityLabel="Create an account"
-          accessibilityHint="Navigate to account creation screen"
+          accessibilityLabel="Continue to checkout"
         >
           <Text
             style={{
@@ -200,10 +224,27 @@ export default function ProductDetails({ route }) {
               fontWeight: "700",
             }}
           >
-            Buy Now
+            Continue
           </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  bottomBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#ccc",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+});
