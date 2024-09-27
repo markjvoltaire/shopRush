@@ -10,6 +10,19 @@ import Auth from "./auth/Auth";
 import NoAuth from "./auth/NoAuth";
 import { UserProvider } from "./useContext/userContext";
 import { StripeProvider } from "@stripe/stripe-react-native";
+import { NotificationProvider } from "./useContext/NotificationContext";
+
+import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
 
 function App() {
   const [auth, setAuth] = useState(false);
@@ -43,11 +56,17 @@ function App() {
     <StripeProvider
       merchantDisplayName="Tizly"
       merchantIdentifier="merchant.com.tizly.TizlyNative" // The Merchant ID you created
-      publishableKey="pk_live_51PVMhrJ0o91xj4miX08JQC1jkXFJUbIZLYai2U2YMvz4LgQjuwOZeuPWypfjun5oHy3FEnJuSgWcplAzauSGzwmy00EiRpqFYE"
+      publishableKey="pk_test_51PVMhrJ0o91xj4miuVh7rhXrOWNTtC1conZos5lB4uC5szMkZDTbQOurUFxLJEQKO3d9QQ29nDrjHKTVyXZ6NMI800pqZVCizt"
     >
       <UserProvider>
         <NavigationContainer>
-          {auth ? <Auth /> : <NoAuth />}
+          {auth ? (
+            <NotificationProvider>
+              <Auth />
+            </NotificationProvider>
+          ) : (
+            <NoAuth />
+          )}
         </NavigationContainer>
       </UserProvider>
     </StripeProvider>

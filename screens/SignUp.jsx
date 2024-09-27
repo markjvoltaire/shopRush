@@ -11,6 +11,7 @@ import {
   Dimensions,
 } from "react-native";
 import { supabase } from "../services/supabase";
+import { useUser } from "../useContext/userContext";
 
 const SignUp = ({ navigation, route }) => {
   const [email, setEmail] = useState("");
@@ -20,6 +21,7 @@ const SignUp = ({ navigation, route }) => {
   const [error, setError] = useState(""); // New state for error messages
   const { height, width } = Dimensions.get("window");
   const { firstName, lastName } = route.params;
+  const { setUser } = useUser();
 
   const signUpWithEmail = async () => {
     setLoading(true); // Start loading
@@ -57,8 +59,11 @@ const SignUp = ({ navigation, route }) => {
             lastName: lastName,
             userId: userId,
             email: email,
+            role: "shopper",
           },
         ]);
+
+        setUser(resp.body[0]);
 
         if (resp.error) {
           setLoading(false);

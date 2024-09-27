@@ -14,6 +14,7 @@ export default function AppHeader() {
       }}
     >
       Hello {user.firstName}
+      {user.lastName}
     </Text>
   );
 }

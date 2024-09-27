@@ -68,7 +68,7 @@ export default function NewStores({ navigation }) {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 100,
+    marginBottom: 50,
   },
   title: {
     fontSize: 24,

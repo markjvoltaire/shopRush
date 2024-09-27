@@ -15,3 +15,14 @@ export async function getUser() {
 
   return data;
 }
+
+export async function getNoti(token) {
+  const userId = supabase.auth.currentUser.id;
+
+  const res = await supabase
+    .from("profiles")
+    .update({ expo_push_token: token })
+    .eq("user_id", userId);
+
+  return res;
+}

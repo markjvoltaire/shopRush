@@ -16,7 +16,6 @@ import {
 } from "react-native";
 import * as Location from "expo-location";
 import MapView, { Marker } from "react-native-maps";
-import HomeCard from "./HomeCard";
 
 export default function Checkout({ route, navigation }) {
   const { productDetails, quantity, selectedSize } = route.params;
@@ -136,7 +135,6 @@ export default function Checkout({ route, navigation }) {
       </SafeAreaView>
     );
   }
-  console.log("keyBoardActive", keyBoardActive);
 
   return (
     <View style={styles.container}>

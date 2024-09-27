@@ -1,9 +1,9 @@
-import { Pressable, SafeAreaView, StyleSheet, Text } from "react-native";
 import React from "react";
+import { Pressable, SafeAreaView, StyleSheet, Text } from "react-native";
 import { useUser } from "../useContext/userContext";
 import { supabase } from "../services/supabase";
 
-export default function UserProfile() {
+const UserProfile = () => {
   const { user, setUser } = useUser();
 
   const handleLogout = async () => {
@@ -12,21 +12,22 @@ export default function UserProfile() {
     if (error) {
       console.error("Error signing out:", error.message);
     } else {
-      setUser(null); // Clear user context on logout
-      // Optionally, you can navigate to a login screen or perform other actions here
+      // Clear user context on logout (uncomment if needed)
+      // setUser(null);
+      // Optionally navigate to a login screen or perform other actions here
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.welcomeText}>Welcome, {user?.email || "User"}!</Text>
-
+      <Text style={styles.welcomeText}>Role: {user?.role || "NO ROLE"}</Text>
       <Pressable onPress={handleLogout} style={styles.logoutButton}>
         <Text style={styles.logoutText}>Sign Out</Text>
       </Pressable>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -48,3 +49,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
 });
+
+export default UserProfile;

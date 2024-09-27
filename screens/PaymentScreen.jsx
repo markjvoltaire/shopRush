@@ -10,14 +10,19 @@ import {
   ScrollView,
   Dimensions,
   Modal,
+  ActivityIndicator,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import MapView, { Marker } from "react-native-maps";
 import LottieView from "lottie-react-native";
 import { useStripe } from "@stripe/stripe-react-native";
+import { useUser } from "../useContext/userContext";
+import { supabase } from "../services/supabase";
 
 export default function PaymentScreen({ route }) {
   const stripe = useStripe();
+  const [loading, setLoading] = useState(true);
+  const [store, setStore] = useState(null);
 
   const {
     address,
@@ -29,24 +34,87 @@ export default function PaymentScreen({ route }) {
     latitude,
     longitude,
   } = route.params;
+
+  // console.log("formattedAddress", formattedAddress);
+  async function getUser() {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("userId", productDetails.userId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching user:", error.message);
+      return null;
+    }
+
+    return data;
+  }
+
   const { height, width } = Dimensions.get("window");
   const [processing, setProcessing] = useState(false);
+  const { user } = useUser();
 
-  // Function to handle payment
-  const handlePayment = () => {
-    setProcessing(true);
+  async function uploadOrder() {
+    try {
+      const newOrder = {
+        customerId: user.userId,
+        storeId: productDetails.userId,
+        driverId: null,
+        productImage: productImage,
+        customerFirstName: user.firstName,
+        expo_push_token: store.expo_push_token,
+        deliveryLocation: formattedAddress,
+        storeLocation: store.storeAddress,
+      };
+      const resp = await supabase.from("orders").insert([newOrder]);
 
-    // Set processing to false after 4 seconds
-    setTimeout(() => {
-      setProcessing(false);
-    }, 4000);
+      return resp;
+    } catch (error) {
+      console.error("Error submitting comment:", error);
+      throw error;
+    }
+  }
+
+  const sendNotification = async (body, title) => {
+    try {
+      // Notification message
+      const message = {
+        to: store.expo_push_token,
+        sound: "default",
+        title: "New order received!",
+        body: "Please start preparing the item",
+      };
+
+      // Send the notification
+      const response = await fetch("https://exp.host/--/api/v2/push/send", {
+        method: "POST",
+        headers: {
+          host: "exp.host",
+          accept: "application/json",
+          "accept-encoding": "gzip, deflate",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(message),
+      });
+
+      // Check if the response is successful
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("Notification sent successfully:", data);
+    } catch (error) {
+      console.error("Failed to send notification:", error);
+    }
   };
 
   const handlePayPress = async () => {
     setProcessing(true);
     const sellerStripeId = "acct_1PqS4EQwjiM7qgln";
     try {
-      const response = await fetch("https://tizlyexpress.onrender.com/pay", {
+      const response = await fetch("http://localhost:8080/pay", {
         method: "POST",
         body: JSON.stringify({
           servicePrice: productDetails.productPrice + 10,
@@ -57,7 +125,6 @@ export default function PaymentScreen({ route }) {
         },
       });
       const data = await response.json();
-      console.log("data", data);
       if (!response.ok) {
         Alert.alert(data.message);
         setProcessing(false);
@@ -83,7 +150,8 @@ export default function PaymentScreen({ route }) {
       }
       const order = await uploadOrder();
       Alert.alert("Payment complete, thank you!");
-
+      console.log("order", order);
+      await sendNotification();
       setProcessing(false);
 
       return order;
@@ -95,12 +163,29 @@ export default function PaymentScreen({ route }) {
     }
   };
 
+  useEffect(() => {
+    const getStoreUser = async () => {
+      const resp = await getUser();
+      setStore(resp);
+      setLoading(false);
+    };
+    getStoreUser();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={{ justifyContent: "center", flex: 1 }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={{ padding: 20 }} showsVerticalScrollIndicator={false}>
         {/* Address Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Shipping Address</Text>
+          <Text style={styles.sectionTitle}>Delivery Address</Text>
           <Text style={styles.address}>{formattedAddress}</Text>
         </View>
         <MapView
@@ -136,10 +221,7 @@ export default function PaymentScreen({ route }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Product Details</Text>
           <View style={styles.productContainer}>
-            <Image
-              source={require("../assets/desi.png")}
-              style={styles.productImage}
-            />
+            <Image source={{ uri: productImage }} style={styles.productImage} />
             <View style={styles.productInfo}>
               <Text style={styles.productName}>
                 {productDetails.productName}

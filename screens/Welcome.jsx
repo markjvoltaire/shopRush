@@ -24,7 +24,7 @@ export default function Welcome({ navigation }) {
   }, []);
 
   const handleGetStarted = useCallback(() => {
-    navigation.navigate("EnterName");
+    navigation.navigate("ProfileType");
   }, [navigation]);
 
   const handleLogin = useCallback(() => {

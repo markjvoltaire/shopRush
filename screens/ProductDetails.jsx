@@ -17,23 +17,15 @@ import React, { useState } from "react";
 export default function ProductDetails({ route, navigation }) {
   // Get the dimensions of the screen
   const { height, width } = Dimensions.get("window");
-  const productDetails = route.params.productDetails || {};
+
+  // Extract product details from route.params
+  const { item } = route.params;
 
   // State variables for size and quantity
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [modalVisible, setModalVisible] = useState(false);
   const [sizeOptions] = useState(["S", "M", "L", "XL"]);
-
-  const { key, name, params } = route;
-  const {
-    productImage,
-    productName,
-    productPrice,
-    storeCity,
-    storeName,
-    storeState,
-  } = productDetails;
 
   const handleContinue = () => {
     if (!selectedSize) {
@@ -42,7 +34,7 @@ export default function ProductDetails({ route, navigation }) {
       navigation.navigate("CheckOut", {
         quantity,
         selectedSize,
-        productDetails,
+        productDetails: item,
       });
     }
   };
@@ -64,9 +56,9 @@ export default function ProductDetails({ route, navigation }) {
               borderRadius: 100,
               marginRight: 10,
             }}
-            source={require("../assets/nike.jpg")}
+            source={require("../assets/nike.jpg")} // Placeholder image for store logo
           />
-          <Text style={{ fontSize: 16 }}>{productDetails.storeName}</Text>
+          <Text style={{ fontSize: 16 }}>{item.storeName}</Text>
         </View>
         <Image
           style={{
@@ -76,13 +68,13 @@ export default function ProductDetails({ route, navigation }) {
             borderRadius: 10,
             marginBottom: 10,
           }}
-          source={require("../assets/desi.png")} // Replace with actual image paths as needed
+          source={{ uri: item.productImage }} // Use the product image from the params
         />
         <Text style={{ fontWeight: "500", fontSize: 22, marginBottom: 15 }}>
-          {productDetails.productName}
+          {item.productName}
         </Text>
         <Text style={{ fontWeight: "500", fontSize: 20, marginBottom: 20 }}>
-          ${productDetails.productPrice}
+          ${item.productPrice}
         </Text>
 
         <View>
@@ -90,10 +82,17 @@ export default function ProductDetails({ route, navigation }) {
             Description:
           </Text>
           <Text style={{ fontWeight: "400", marginBottom: 5 }}>
-            Elevate your casual style with our Classic Black Hoodie. Made from a
-            soft and breathable cotton blend, this hoodie features a cozy
-            drawstring hood, a spacious front pocket, and ribbed cuffs for a
-            comfortable fit.
+            {item.productDescription}
+          </Text>
+        </View>
+
+        {/* Store Location */}
+        <View style={{ marginVertical: 20 }}>
+          <Text style={{ fontWeight: "500", marginBottom: 5 }}>
+            Store Location:
+          </Text>
+          <Text style={{ fontWeight: "400" }}>
+            {item.city}, {item.state}
           </Text>
         </View>
 
@@ -231,20 +230,3 @@ export default function ProductDetails({ route, navigation }) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  bottomBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#ccc",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-});

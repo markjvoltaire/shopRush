@@ -6,15 +6,101 @@ import {
   TextInput,
   Image,
   Dimensions,
+  Platform,
 } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppHeader from "../components/AppHeader";
 import Categories from "../components/Categories";
 import NewStores from "../components/NewStores";
+import LocalFavorites from "../components/LocalFavorites";
+
+import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
+import { supabase } from "../services/supabase";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function Home({ navigation }) {
   const { height, width } = Dimensions.get("window");
+  const [expoPushToken, setExpoPushToken] = useState("");
+
+  useEffect(() => {
+    registerForPushNotificationsAsync().then(
+      (token) => token && setExpoPushToken(token)
+    );
+  }, []);
+
+  async function registerForPushNotificationsAsync() {
+    let token;
+
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync("default", {
+        name: "default",
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: "#FF231F7C",
+      });
+    }
+
+    if (Device.isDevice) {
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      try {
+        const projectId =
+          Constants?.expoConfig?.extra?.eas?.projectId ??
+          Constants?.easConfig?.projectId;
+        if (!projectId) {
+          throw new Error("Project ID not found");
+        }
+        token = (
+          await Notifications.getExpoPushTokenAsync({
+            projectId,
+          })
+        ).data;
+        console.log("token", token);
+
+        await updateExpoToken(token);
+      } catch (e) {
+        token = `${e}`;
+      }
+    } else {
+      alert("Must use physical device for Push Notifications");
+    }
+
+    return token;
+  }
+
+  const updateExpoToken = async (token) => {
+    console.log("token", token);
+
+    const userId = supabase.auth.currentUser.id;
+
+    const res = await supabase
+      .from("profiles")
+      .update({ expo_push_token: token })
+      .eq("userId", userId);
+
+    if (res.error) {
+      console.log("ERROR", res.error);
+      Alert.alert("Something Went Wrong");
+    }
+
+    return res;
+  };
 
   return (
     <>
@@ -26,26 +112,7 @@ export default function Home({ navigation }) {
         />
       </SafeAreaView>
       <ScrollView style={{ backgroundColor: "white", flex: 1, padding: 10 }}>
-        <Image
-          style={{
-            height: height * 0.2,
-            width: width * 0.97,
-            borderRadius: 5,
-            alignSelf: "center",
-            marginBottom: 10,
-            bottom: 10,
-          }}
-          source={require("../assets/Frame.png")}
-          resizeMode="cover" // Ensure consistent image rendering
-        />
-
-        <Text style={styles.categoryText}>Shop by Category</Text>
-
-        <Categories navigation={navigation} />
-
-        <Text style={styles.categoryText}>New to Shop Rush</Text>
-
-        <NewStores navigation={navigation} />
+        <LocalFavorites navigation={navigation} />
       </ScrollView>
     </>
   );
